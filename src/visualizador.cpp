@@ -43,14 +43,14 @@ std::vector<DesenhoObjeto> Visualizador::processarDisplayFileParaDesenho() {
         desenho.nome = objeto_ptr->getNome();
 
         // 1. Obter os pontos do objeto em Coordenadas de Mundo
-        const std::vector<std::array<double, 3>>& pontosMundo = objeto_ptr->getPontos();
+        const vector<array<double, 3>>& pontosMundo = objeto_ptr->getPontos();
 
         // Itera sobre as arestas do polígono (Ponto I ao Ponto I+1)
         for (size_t i = 0; i < pontosMundo.size(); ++i) {
 
             // Pontos A e B no SCM (Normalized Coordinate System: [-1, 1] x [-1, 1])
-            std::array<double, 3> ponto_A_SCN = this->window.getMatrizNormalizacao() * pontosMundo[i];
-            std::array<double, 3> ponto_B_SCN;
+            array<double, 3> ponto_A_SCN = this->window.getMatrizNormalizacao() * pontosMundo[i];
+            array<double, 3> ponto_B_SCN;
 
             // Para polígonos, a aresta de fechamento é do último ponto para o primeiro.
             size_t next_i = (i + 1) % pontosMundo.size();
@@ -71,10 +71,10 @@ std::vector<DesenhoObjeto> Visualizador::processarDisplayFileParaDesenho() {
                 // Os novos (x1, y1, 1.0) e (x2, y2, 1.0) estão no SCN e agora serão mapeados para a tela.
 
                 // Ponto A Viewport
-                std::array<double, 3> ponto_A_VP = this->viewport.getMatrizViewport() * (std::array<double, 3>{x1, y1, 1.0});
+                array<double, 3> ponto_A_VP = this->viewport.getMatrizViewport() * (array<double, 3>{x1, y1, 1.0});
 
                 // Ponto B Viewport
-                std::array<double, 3> ponto_B_VP = this->viewport.getMatrizViewport() * (std::array<double, 3>{x2, y2, 1.0});
+                array<double, 3> ponto_B_VP = this->viewport.getMatrizViewport() * (array<double, 3>{x2, y2, 1.0});
 
                 // 6. Converte para Coordenadas 2D de Tela (Pixel)
                 Ponto2D_Tela pA = {ponto_A_VP[0], ponto_A_VP[1]};
@@ -83,10 +83,6 @@ std::vector<DesenhoObjeto> Visualizador::processarDisplayFileParaDesenho() {
                 // Adiciona os dois pontos (pA e pB) para desenhar a linha.
                 desenho.pontos.push_back(pA);
                 desenho.pontos.push_back(pB);
-
-                // Se o objeto for um POLÍGONO, você deve fazer uma lógica mais complexa
-                // para garantir que os pontos de intersecção se liguem, mas para
-                // o Cohen-Sutherland de linha (simples), isso basta.
             }
         }
 

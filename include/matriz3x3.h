@@ -1,6 +1,8 @@
 #ifndef MATRIZ3X3_H
 #define MATRIZ3X3_H
 
+#define PI 3.14159265358979323846
+
 #include <vector>
 #include <array>
 #include <cmath>
@@ -29,7 +31,7 @@ public:
 
     // Usado na transformação de um único ponto: P' = M * P
     array<double, 3> operator*(const array<double, 3>& ponto) const;
-
+    
     static Matriz3x3 identidade();
 
     // Transformações Simples

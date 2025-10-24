@@ -4,9 +4,9 @@ WidgetDesenho::WidgetDesenho(DisplayFile& df, QWidget *parent)
     : QWidget(parent),
     displayFile(df),
     // Cria a Window inicial
-    visualizador(&df, Window(-100, -100, 100, 100),
+    visualizador(&df, Window(100, 100, 500, 500),
                  // A Viewport inicial usa o tamanho atual do widget
-                 Viewport(50, 50, this->width() - 50, this->height() - 50))
+                 Viewport(0, 0, this->width(), this->height()))
 {
     this->setFocusPolicy(Qt::StrongFocus); // Permite receber foco ao clicar
     this->setFocus();
@@ -44,7 +44,7 @@ void WidgetDesenho::resizeEvent(QResizeEvent *event) {
     int novoH = this->height();
 
     // Atualiza a Viewport dentro do Visualizador
-    this->visualizador.viewport.setLimites(0, 0, novoW, novoH);
+    this->visualizador.viewport.setLimites(20, 20, novoW - 20, novoH - 20);
 
     // Recalcula o pipeline para a nova Viewport
     this->visualizador.recalcularPipeline();
@@ -67,7 +67,7 @@ void WidgetDesenho::paintEvent(QPaintEvent *event) {
     painter.setPen(QPen(Qt::red, penWidth, Qt::SolidLine));
     painter.setBrush(Qt::NoBrush);
 
-    painter.drawRect(vp.xMin + 20, vp.yMin + 20, vp.xMax - vp.xMin - 40, vp.yMax - vp.yMin - 40);
+    painter.drawRect(vp.xMin, vp.yMin, vp.xMax - vp.xMin, vp.yMax - vp.yMin);
 
     painter.setPen(Qt::black);
 

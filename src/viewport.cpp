@@ -31,7 +31,7 @@ Matriz3x3 Viewport::getMatrizViewport() const {
     Matriz3x3 S = Matriz3x3::escala(sx, sy);
 
     // C. Translação para o Canto Final
-    Matriz3x3 T2 = Matriz3x3::translacao((double)this->xMin + 20, (double)this->yMin + deltaY - 20);
+    Matriz3x3 T2 = Matriz3x3::translacao((double)this->xMin, (double)this->yMin + deltaY);
 
     // Composição Final: M_Viewport = T2 * S * T1
     return T2 * S * T1;

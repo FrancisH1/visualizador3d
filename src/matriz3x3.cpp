@@ -1,7 +1,7 @@
 #include "matriz3x3.h"
 
 double toRadiano(double anguloGrau){
-    return (anguloGrau * M_PI) / 180;
+    return (anguloGrau * PI) / 180;
 }
 
 Matriz3x3::Matriz3x3(){
