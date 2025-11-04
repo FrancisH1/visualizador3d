@@ -5,7 +5,8 @@
 
 class Window {
 public:
-    double xMin, yMin, xMax, yMax;
+    double xMin, xMax;
+    double yMin, yMax;
     double centroX, centroY;
     double angulo; // Angulo de rotação da Window
 
@@ -19,6 +20,8 @@ public:
     void rotacionar(double anguloGrau);
 
     Matriz3x3 getMatrizNormalizacao() const;
+
+    ~Window();
 };
 
 #endif // WINDOW_H

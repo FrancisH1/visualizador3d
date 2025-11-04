@@ -1,14 +1,10 @@
 #ifndef MATRIZ3X3_H
 #define MATRIZ3X3_H
 
-#define PI 3.14159265358979323846
-
 #include <vector>
 #include <array>
-#include <cmath>
 #include <stdexcept>
-
-double toRadiano(double anguloGrau);
+#include "toradiano.h"
 
 using std::vector;
 using std::array;
@@ -30,7 +26,7 @@ public:
     Matriz3x3 operator*(const Matriz3x3& outra) const;
 
     // Usado na transformação de um único ponto: P' = M * P
-    array<double, 3> operator*(const array<double, 3>& ponto) const;
+    array<double, 3> operator*(const array<double, 4>& ponto) const;
     
     static Matriz3x3 identidade();
 
@@ -38,6 +34,8 @@ public:
     static Matriz3x3 translacao(double tx, double ty);
     static Matriz3x3 escala(double sx, double sy);
     static Matriz3x3 rotacao(double anguloGrau);
+
+    ~Matriz3x3();
 };
 
 #endif // MATRIZ3X3_H

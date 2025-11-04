@@ -36,3 +36,5 @@ Matriz3x3 Viewport::getMatrizViewport() const {
     // Composição Final: M_Viewport = T2 * S * T1
     return T2 * S * T1;
 }
+
+Viewport::~Viewport(){}

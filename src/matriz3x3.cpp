@@ -1,9 +1,5 @@
 #include "matriz3x3.h"
 
-double toRadiano(double anguloGrau){
-    return (anguloGrau * PI) / 180;
-}
-
 Matriz3x3::Matriz3x3(){
     elementos = {
         1.0, 0.0, 0.0,
@@ -49,15 +45,15 @@ Matriz3x3 Matriz3x3::operator* (const Matriz3x3& outra) const{
     return resultado;
 }
 
-array<double, 3> Matriz3x3::operator*(const array<double, 3>& ponto) const {
+array<double, 3> Matriz3x3::operator*(const array<double, 4>& ponto) const {
     array<double, 3> ponto_transformado;
 
     // x' = m11*x + m12*y + m13*w
-    ponto_transformado[0] = elementos[0]*ponto[0] + elementos[1]*ponto[1] + elementos[2]*ponto[2];
+    ponto_transformado[0] = elementos[0]*ponto[0] + elementos[1]*ponto[1] + elementos[2]*ponto[3];
     // y' = m21*x + m22*y + m23*w
-    ponto_transformado[1] = elementos[3]*ponto[0] + elementos[4]*ponto[1] + elementos[5]*ponto[2];
+    ponto_transformado[1] = elementos[3]*ponto[0] + elementos[4]*ponto[1] + elementos[5]*ponto[3];
     // w' = m31*x + m32*y + m33*w
-    ponto_transformado[2] = elementos[6]*ponto[0] + elementos[7]*ponto[1] + elementos[8]*ponto[2];
+    ponto_transformado[2] = elementos[6]*ponto[0] + elementos[7]*ponto[1] + elementos[8]*ponto[3];
 
     return ponto_transformado;
 }
@@ -100,3 +96,6 @@ Matriz3x3 Matriz3x3::escala(double sx, double sy){
 
     return M;
 }
+
+
+Matriz3x3::~Matriz3x3(){}

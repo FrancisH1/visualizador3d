@@ -15,11 +15,14 @@ public:
     DisplayFile();
 
     void adicionarObjeto(unique_ptr<Objeto> obj);
+    void adicionarObjetos(std::vector<std::unique_ptr<Objeto>> novosObjetos);
+    const std::vector<std::unique_ptr<Objeto>>& getObjetos() const { return objetos; }
 
     void removerObjeto(string nome);
 
-    void aplicarTransformacao(const Matriz3x3& M);
+    void aplicarTransformacao(const Matriz4x4& M);
 
+    ~DisplayFile();
 };
 
 #endif // DISPLAYFILE_H

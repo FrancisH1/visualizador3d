@@ -45,6 +45,8 @@ public:
     // Método principal de renderização/processamento
     vector<DesenhoObjeto> processarDisplayFileParaDesenho();
 
+    ~Visualizador();
+
 };
 
 #endif // VISUALIZADOR_H

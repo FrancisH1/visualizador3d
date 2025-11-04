@@ -17,6 +17,8 @@ public:
 
     // Método Principal: Retorna a Matriz de Transformação da Viewport (M_Viewport)
     Matriz3x3 getMatrizViewport() const;
+
+    ~Viewport();
 };
 
 #endif // VIEWPORT_H

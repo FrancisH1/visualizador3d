@@ -7,13 +7,13 @@
 #include "window.h"
 #include "viewport.h"
 #include "displayfile.h"
-#include "visualizador.h"
+#include "visualizador3d.h"
 
 class WidgetDesenho : public QWidget
 {
     Q_OBJECT
 public:
-    Visualizador visualizador;
+    Visualizador3d visualizador;
 
     DisplayFile& displayFile;
 
@@ -25,9 +25,9 @@ public:
     void redesenhar();
 
     // Métodos de acesso para a navegação (chamados pela MainWindow)
-    void moverWindow(double dx, double dy);
-    void zoomWindow(double fator);
-    void rotacionarWindow(double anguloGrau);
+    void moverCamera(double dx, double dy, double dz);
+    void zoomCamera(double fator);
+    void rotacionarCameraY(double anguloGrau);
 
     // Sobrescreve o evento de resize para manter a Viewport correta
     void resizeEvent(QResizeEvent *event) override;

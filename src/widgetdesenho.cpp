@@ -4,7 +4,7 @@ WidgetDesenho::WidgetDesenho(DisplayFile& df, QWidget *parent)
     : QWidget(parent),
     displayFile(df),
     // Cria a Window inicial
-    visualizador(&df, Window(100, 100, 500, 500),
+    visualizador(&df, Window3d(Ponto(0,0,10), Ponto(0,0,0), Ponto(0,1,0), -5, 5, -5, 5, -5, 5),
                  // A Viewport inicial usa o tamanho atual do widget
                  Viewport(0, 0, this->width(), this->height()))
 {
@@ -23,18 +23,18 @@ void WidgetDesenho::redesenhar() {
 }
 
 // Métodos de navegação (apenas delegam para o Visualizador e disparam o redesenho)
-void WidgetDesenho::moverWindow(double dx, double dy) {
-    this->visualizador.moverWindow(dx, dy);
+void WidgetDesenho::moverCamera(double dx, double dy, double dz) {
+    this->visualizador.moverCamera(dx, dy, dz);
     this->redesenhar();
 }
 
-void WidgetDesenho::zoomWindow(double fator) {
-    this->visualizador.zoomWindow(fator);
+void WidgetDesenho::zoomCamera(double fator) {
+    this->visualizador.zoomCamera(fator);
     this->redesenhar();
 }
 
-void WidgetDesenho::rotacionarWindow(double anguloGrau) {
-    this->visualizador.rotacionarWindow(anguloGrau);
+void WidgetDesenho::rotacionarCameraY(double anguloGrau) {
+    this->visualizador.rotacionarCameraY(anguloGrau);
     this->redesenhar();
 }
 
@@ -87,9 +87,9 @@ void WidgetDesenho::paintEvent(QPaintEvent *event) {
             }
 
             // Se for um polígono, fechar a forma
-            if (desenho.nome.find("Poligono")) { // Lógica simples para identificar o Polígono
-                QPointF pStart(pontos_tela.back().x, pontos_tela.back().y);
-                QPointF pEnd(pontos_tela.front().x, pontos_tela.front().y);
+            if (desenho.pontos.size() > 2) { // Lógica simples para identificar o Polígono
+                QPointF pStart(pontos_tela.front().x, pontos_tela.front().y);
+                QPointF pEnd(pontos_tela.back().x, pontos_tela.back().y);
                 painter.drawLine(pEnd, pStart);
             }
         }
@@ -103,59 +103,23 @@ void WidgetDesenho::paintEvent(QPaintEvent *event) {
 }
 
 void WidgetDesenho::keyPressEvent(QKeyEvent *event) {
-    double velocidade_translacao = 10.0; // Movimento em unidades de mundo
-    double fator_zoom = 1.1;             // 1.1 para zoom in, 1/1.1 para zoom out
-
-    bool window_modificada = false;
-
-    // Acessa o objeto Window (assumindo que ele está dentro do Visualizador)
-    Window& w = this->visualizador.window;
-
     switch (event->key()) {
+        case Qt::Key_W: visualizador.moverCamera(0, 0, -0.5); break; // Frente
+        case Qt::Key_S: visualizador.moverCamera(0, 0,  0.5); break; // Trás
+        case Qt::Key_A: visualizador.moverCamera(-0.5, 0, 0); break; // Esquerda
+        case Qt::Key_D: visualizador.moverCamera(0.5, 0, 0); break;  // Direita
+        case Qt::Key_R: visualizador.moverCamera(0, 0.5, 0); break;  // Subir
+        case Qt::Key_F: visualizador.moverCamera(0, -0.5, 0); break; // Descer
 
-    // ------------------------------------
-    // 1. Translação - Setas
-    // ------------------------------------
-    case Qt::Key_Left:
-        w.mover(-velocidade_translacao, 0.0);
-        window_modificada = true;
-        break;
-    case Qt::Key_Right:
-        w.mover(velocidade_translacao, 0.0);
-        window_modificada = true;
-        break;
-    case Qt::Key_Up:
-        w.mover(0.0, velocidade_translacao);
-        window_modificada = true;
-        break;
-    case Qt::Key_Down:
-        w.mover(0.0, -velocidade_translacao);
-        window_modificada = true;
-        break;
+        case Qt::Key_Q: visualizador.rotacionarCameraY(-5); break;   // Gira esquerda
+        case Qt::Key_E: visualizador.rotacionarCameraY(5); break;    // Gira direita
+        case Qt::Key_Up: visualizador.rotacionarCameraX(-5); break;  // Gira para cima
+        case Qt::Key_Down: visualizador.rotacionarCameraX(5); break; // Gira para baixo
 
-    // ------------------------------------
-    // 2. Escala (Zoom) - Teclas 'I' e 'O'
-    // ------------------------------------
-    case Qt::Key_I: // I de IN (Zoom In)
-        w.zoom(fator_zoom); // Reduz os limites da Window (Zoom In)
-        window_modificada = true;
-        break;
-    case Qt::Key_O: // O de OUT (Zoom Out)
-        w.zoom(1.0 / fator_zoom);      // Aumenta os limites da Window (Zoom Out)
-        window_modificada = true;
-        break;
-
-    default:
-        // Deixa o evento ser processado pela classe base (QWidget)
-        QWidget::keyPressEvent(event);
-        return;
+        case Qt::Key_Z: visualizador.zoomCamera(0.9); break;         // Zoom in
+        case Qt::Key_X: visualizador.zoomCamera(1.1); break;         // Zoom out
     }
-
-    if (window_modificada) {
-        // Recalcular o SCN e a Viewport
-        this->visualizador.recalcularPipeline();
-
-        // Força o redesenho da tela
-        this->update();
-    }
+    this->update();
 }
+
+

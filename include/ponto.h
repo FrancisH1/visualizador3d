@@ -6,13 +6,29 @@
 class Ponto : public Objeto
 {
 public:
-    array<double, 3> coordenada;
+    array<double, 4> coordenada;
 
-    Ponto(double x, double y);
+    Ponto(double x, double y, double z = 0.0, double w = 1.0);
 
-    void aplicarTransformacao(const Matriz3x3 &M) override;
+    // Getters para coordenadas individuais
+    double x() const;
+    double y() const;
+    double z() const;
+    double w() const;
 
-    vector<array<double, 3>> getPontos() override;
+    void aplicarTransformacao(const Matriz4x4 &M) override;
+
+    vector<array<double, 4>> getPontos() override;
+
+    Ponto operator - (const Ponto &outro) const;
+    Ponto operator + (const Ponto &outro) const;
+
+    double produtoEscalar(const Ponto& outro) const;
+    Ponto produtoVetorial(const Ponto& outro) const;
+    double norma() const;
+    Ponto normalizado() const;
+
+    ~Ponto();
 };
 
 #endif // PONTO_H

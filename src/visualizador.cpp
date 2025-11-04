@@ -34,7 +34,7 @@ void Visualizador::rotacionarWindow(double anguloGrau) {
 }
 
 std::vector<DesenhoObjeto> Visualizador::processarDisplayFileParaDesenho() {
-    std::vector<DesenhoObjeto> objetosParaDesenhar;
+    vector<DesenhoObjeto> objetosParaDesenhar;
 
     const Matriz3x3& M_Final = this->matrizTransformacaoFinal;
 
@@ -43,7 +43,7 @@ std::vector<DesenhoObjeto> Visualizador::processarDisplayFileParaDesenho() {
         desenho.nome = objeto_ptr->getNome();
 
         // 1. Obter os pontos do objeto em Coordenadas de Mundo
-        const vector<array<double, 3>>& pontosMundo = objeto_ptr->getPontos();
+        const vector<array<double, 4>>& pontosMundo = objeto_ptr->getPontos();
 
         // Itera sobre as arestas do polígono (Ponto I ao Ponto I+1)
         for (size_t i = 0; i < pontosMundo.size(); ++i) {
@@ -71,10 +71,10 @@ std::vector<DesenhoObjeto> Visualizador::processarDisplayFileParaDesenho() {
                 // Os novos (x1, y1, 1.0) e (x2, y2, 1.0) estão no SCN e agora serão mapeados para a tela.
 
                 // Ponto A Viewport
-                array<double, 3> ponto_A_VP = this->viewport.getMatrizViewport() * (array<double, 3>{x1, y1, 1.0});
+                array<double, 3> ponto_A_VP = this->viewport.getMatrizViewport() * (array<double, 4>{x1, y1, 0.0, 1.0});
 
                 // Ponto B Viewport
-                array<double, 3> ponto_B_VP = this->viewport.getMatrizViewport() * (array<double, 3>{x2, y2, 1.0});
+                array<double, 3> ponto_B_VP = this->viewport.getMatrizViewport() * (array<double, 4>{x2, y2, 0.0, 1.0});
 
                 // 6. Converte para Coordenadas 2D de Tela (Pixel)
                 Ponto2D_Tela pA = {ponto_A_VP[0], ponto_A_VP[1]};
@@ -91,3 +91,5 @@ std::vector<DesenhoObjeto> Visualizador::processarDisplayFileParaDesenho() {
 
     return objetosParaDesenhar;
 }
+
+Visualizador::~Visualizador(){}

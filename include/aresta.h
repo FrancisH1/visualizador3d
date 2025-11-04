@@ -11,9 +11,11 @@ public:
 
     Aresta(Ponto p1, Ponto p2);
 
-    void aplicarTransformacao(const Matriz3x3 &M) override;
+    void aplicarTransformacao(const Matriz4x4 &M) override;
 
-    vector<array<double, 3>> getPontos() override;
+    vector<array<double, 4>> getPontos() override;
+
+    ~Aresta();
 };
 
 #endif // ARESTA_H

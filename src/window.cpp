@@ -66,3 +66,5 @@ Matriz3x3 Window::getMatrizNormalizacao() const {
     // Composição: M_Normalizacao = S * R * T1
     return S * R * T;
 }
+
+Window::~Window(){}

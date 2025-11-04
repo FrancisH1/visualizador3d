@@ -2,7 +2,7 @@
 #define OBJETO_H
 
 #include <iostream>
-#include <matriz3x3.h>
+#include "matriz4x4.h"
 #include "tipoobjeto.h"
 
 using std::string;
@@ -15,11 +15,11 @@ public:
 
     Objeto(string nome, tipoObjeto tipo);
 
-    virtual void aplicarTransformacao(const Matriz3x3 &M) = 0;
+    virtual void aplicarTransformacao(const Matriz4x4 &M) = 0;
 
     string getNome();
 
-    virtual vector<array<double, 3>> getPontos() = 0;
+    virtual vector<array<double, 4>> getPontos() = 0;
 
     virtual ~Objeto();
 };
