@@ -11,6 +11,17 @@ Poligono::Poligono(string nome, vector<array<double, 4>> vertices) : Objeto(nome
     }
 }
 
+Poligono::Poligono(string nome, vector<Ponto> vertices) : Objeto(nome, POLIGONO) {
+    for (const auto& v : vertices) {
+        if (v.coordenada.size() == 3)
+            pontos.push_back({v.coordenada[0], v.coordenada[1], 0.0, 1.0});
+        else if (v.coordenada.size() == 4)
+            pontos.push_back({v.coordenada[0], v.coordenada[1], v.coordenada[2], 1.0});
+        else
+            throw std::invalid_argument("Vértice inválido (esperado 2 ou 3 coordenadas)");
+    }
+}
+
 void Poligono::aplicarTransformacao(const Matriz4x4& M) {
     // Itera sobre todos os pontos do polígono
     for (auto& ponto : pontos) {

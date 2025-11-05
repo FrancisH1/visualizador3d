@@ -19,6 +19,7 @@ private:
 
 public:
     Poligono(string nome, vector<array<double,4>> vertices);
+    Poligono(string nome, vector<Ponto> vertices);
 
     void aplicarTransformacao(const Matriz4x4& M) override;
 

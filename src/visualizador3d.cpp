@@ -70,16 +70,31 @@ std::vector<DesenhoObjeto> Visualizador3d::processarDisplayFileParaDesenho() {
             array<double, 4> A2D = { A[0], A[1], 0.0, 1.0 };
             array<double, 4> B2D = { B[0], B[1], 0.0, 1.0 };
 
-            // 7️. Aplicar transformação de viewport
-            array<double, 3> AVP = Mviewport * A2D;
-            array<double, 3> BVP = Mviewport * B2D;
+            double x1 = A2D[0];
+            double y1 = A2D[1];
+            double x2 = B2D[0];
+            double y2 = B2D[1];
 
-            // 8️. Converter para coordenadas de tela (pixels)
-            Ponto2D_Tela pA = { AVP[0], AVP[1] };
-            Ponto2D_Tela pB = { BVP[0], BVP[1] };
+            // 7. Recorta a linha. Se retornar true, a linha (ou o segmento resultante) é visível.
+            if (clipparReta(x1, y1, x2, y2)) {
 
-            desenho.pontos.push_back(pA);
-            desenho.pontos.push_back(pB);
+                // 5. Se aceita, aplica a Transformação de Viewport (M_Viewport)
+                // Os novos (x1, y1, 1.0) e (x2, y2, 1.0) estão no SCN e agora serão mapeados para a tela.
+
+                // Ponto A Viewport
+                array<double, 3> ponto_A_VP = Mviewport * (array<double, 4>{x1, y1, 0.0, 1.0});
+
+                // Ponto B Viewport
+                array<double, 3> ponto_B_VP = Mviewport * (array<double, 4>{x2, y2, 0.0, 1.0});
+
+                // 8. Converte para Coordenadas 2D de Tela (Pixel)
+                Ponto2D_Tela pA = {ponto_A_VP[0], ponto_A_VP[1]};
+                Ponto2D_Tela pB = {ponto_B_VP[0], ponto_B_VP[1]};
+
+                // Adiciona os dois pontos (pA e pB) para desenhar a linha.
+                desenho.pontos.push_back(pA);
+                desenho.pontos.push_back(pB);
+            }
         }
 
         objetosParaDesenhar.push_back(desenho);

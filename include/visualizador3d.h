@@ -1,6 +1,7 @@
 #include "window3d.h"
 #include "viewport.h"
 #include "displayfile.h"
+#include "clipping.h"
 
 struct Ponto2D_Tela {
     double x;
