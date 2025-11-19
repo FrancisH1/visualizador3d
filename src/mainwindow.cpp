@@ -63,6 +63,26 @@ void carregarOBJ(const QString& caminho, DisplayFile& display) {
             << QString::number(vertices.size()) << "vértices.";
 }
 
+QString encontrarArquivo(const QString& relativePath) {
+    QStringList possiveisCaminhos = {
+        QCoreApplication::applicationDirPath() + "/" + relativePath,
+        QDir::currentPath() + "/" + relativePath,
+        QDir::currentPath() + "/../" + relativePath,
+        QDir::currentPath() + "/../../" + relativePath,
+        QDir::currentPath() + "/../../../" + relativePath,
+    };
+    
+    for (const QString& caminho : possiveisCaminhos) {
+        if (QFile::exists(caminho)) {
+            qInfo() << "Arquivo encontrado em:" << caminho;
+            return caminho;
+        }
+    }
+    
+    qWarning() << "Arquivo não encontrado:" << relativePath;
+    return QString(); // retorna vazio se não encontrar
+}
+
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -70,8 +90,12 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    carregarOBJ("../../resources/Charizard/Charizard.obj", displayFile);
-    carregarOBJ("../../resources/Umbreon/UmbreonLowPoly.obj", displayFile);
+    QString charizardPath = encontrarArquivo("resources/Charizard/Charizard.obj");
+    QString umbreonPath = encontrarArquivo("resources/Umbreon/UmbreonLowPoly.obj");
+    
+    carregarOBJ(charizardPath, displayFile);
+    
+    carregarOBJ(umbreonPath, displayFile);
 
     areaDesenho = new WidgetDesenho(displayFile, this);
 

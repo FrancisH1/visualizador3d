@@ -5,3 +5,4 @@ A/D = Esquerda/Direita
 R/F = Subir/Descer
 Q/E = Girar para Esquerda/Direita
 Up/Down = Girar para Cima/Baixo
+P = Alternar entre projeção Ortogonal/Perspectiva

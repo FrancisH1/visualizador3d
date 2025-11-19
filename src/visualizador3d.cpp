@@ -1,9 +1,13 @@
 #include "visualizador3d.h"
 
 void Visualizador3d::recalcularPipeline() {
-    Mview = window.getMatrizNormalizacao();
-    Mproj = window.getMatrizProjecaoOrtogonal();
-    Mvp   = viewport.getMatrizViewport();
+    Mview = window.getMatrizView();
+
+    Mproj = this->projecaoAtual == ORTOGONAL ? window.getMatrizProjecaoOrtogonal() : window.getMatrizPerspectiva(this->viewport.aspect);
+    
+    Mvp = Mproj * Mview;
+
+    Mviewport = viewport.getMatrizViewport();
 }
 
 Visualizador3d::Visualizador3d(DisplayFile* df, const Window3d& w, const Viewport& vp)
@@ -11,6 +15,11 @@ Visualizador3d::Visualizador3d(DisplayFile* df, const Window3d& w, const Viewpor
 
     // Inicializa a matriz de transformação com a composição inicial
     this->recalcularPipeline();
+    this->projecaoAtual = ORTOGONAL;
+}
+
+void Visualizador3d::alternarProjecao(){
+    this->projecaoAtual = this->projecaoAtual == ORTOGONAL ? PERSPECTIVA : ORTOGONAL;
 }
 
 void Visualizador3d::moverCamera(double dx, double dy, double dz) {
@@ -19,7 +28,7 @@ void Visualizador3d::moverCamera(double dx, double dy, double dz) {
 }
 
 void Visualizador3d::zoomCamera(double fator) {
-    this->window.escalar(fator);
+    this->window.escalar(fator, projecaoAtual);
     this->recalcularPipeline();
 }
 
@@ -37,9 +46,7 @@ std::vector<DesenhoObjeto> Visualizador3d::processarDisplayFileParaDesenho() {
     std::vector<DesenhoObjeto> objetosParaDesenhar;
 
     // 1️. Obter matrizes do pipeline 3D
-    Matriz4x4 Mview = this->window.getMatrizNormalizacao();         // World → View
-    Matriz4x4 Mproj = this->window.getMatrizProjecaoOrtogonal();    // View → NDC
-    Matriz4x4 Mvp   = Mproj * Mview;                                // World → NDC
+    recalcularPipeline();
 
     // 2️. Matriz de viewport (3x3, usada no 2D final)
     Matriz3x3 Mviewport = this->viewport.getMatrizViewport();
@@ -54,11 +61,30 @@ std::vector<DesenhoObjeto> Visualizador3d::processarDisplayFileParaDesenho() {
 
         // 5️. Transformar todos os pontos para o espaço de NDC ([-1,1]³)
         vector<array<double, 4>> pontosNDC;
-        for (const auto& p : pontosMundo) {
-            array<double, 4> p_ndc = Mvp * p; // Matriz4x4 × vetor4
-            pontosNDC.push_back(p_ndc);
-        }
+        
 
+        if(projecaoAtual == ORTOGONAL){
+            for (const auto& p : pontosMundo) {
+                array<double, 4> p_ndc = Mvp * p; // Matriz4x4 × vetor4
+                pontosNDC.push_back(p_ndc);
+            }
+        }
+        else{
+            for (const auto& p : pontosMundo) {
+                array<double, 4> p_ndc = Mvp * p; // Matriz4x4 × vetor4
+
+                if (p_ndc[3] <= 0.0001) {
+                    // Vértice atrás ou muito próximo do plano near - pula
+                    continue;
+                }
+
+                p_ndc[0] /= p_ndc[3];
+                p_ndc[1] /= p_ndc[3];
+                p_ndc[2] /= p_ndc[3];
+                pontosNDC.push_back(p_ndc);
+            }
+        }
+        
         // 6️. Projetar em 2D (descartar o eixo Z)
         for (size_t i = 0; i < pontosNDC.size(); ++i) {
             size_t next_i = (i + 1) % pontosNDC.size();
@@ -78,7 +104,7 @@ std::vector<DesenhoObjeto> Visualizador3d::processarDisplayFileParaDesenho() {
             // 7. Recorta a linha. Se retornar true, a linha (ou o segmento resultante) é visível.
             if (clipparReta(x1, y1, x2, y2)) {
 
-                // 5. Se aceita, aplica a Transformação de Viewport (M_Viewport)
+                // Se aceita, aplica a Transformação de Viewport (M_Viewport)
                 // Os novos (x1, y1, 1.0) e (x2, y2, 1.0) estão no SCN e agora serão mapeados para a tela.
 
                 // Ponto A Viewport

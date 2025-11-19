@@ -8,6 +8,7 @@ public:
     // Coordenadas em pixels da área de desenho
     int xMin, yMin; // Canto superior esquerdo
     int xMax, yMax; // Canto inferior direito
+    double aspect;
 
     // Construtor: Recebe os limites em pixels da Viewport
     Viewport(int xMin, int yMin, int xMax, int yMax);

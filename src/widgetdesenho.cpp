@@ -118,6 +118,8 @@ void WidgetDesenho::keyPressEvent(QKeyEvent *event) {
 
         case Qt::Key_Z: visualizador.zoomCamera(0.9); break;         // Zoom in
         case Qt::Key_X: visualizador.zoomCamera(1.1); break;         // Zoom out
+
+        case Qt::Key_P: visualizador.alternarProjecao(); break;
     }
     this->update();
 }

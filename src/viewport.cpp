@@ -5,6 +5,7 @@ Viewport::Viewport(int xMin, int yMin, int xMax, int yMax) {
     this->yMin = yMin;
     this->xMax = xMax;
     this->yMax = yMax;
+    this->aspect = (xMax - xMin)/(double)(yMax - yMin);
 }
 
 void Viewport::setLimites(int xMin, int yMin, int xMax, int yMax) {
@@ -12,6 +13,7 @@ void Viewport::setLimites(int xMin, int yMin, int xMax, int yMax) {
     this->yMin = yMin;
     this->xMax = xMax;
     this->yMax = yMax;
+    this->aspect = (xMax - xMin)/(double)(yMax - yMin);
 }
 
 Matriz3x3 Viewport::getMatrizViewport() const {
