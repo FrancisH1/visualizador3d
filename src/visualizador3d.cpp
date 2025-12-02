@@ -1,4 +1,5 @@
 #include "visualizador3d.h"
+#include "objetoobj.h"
 
 void Visualizador3d::recalcularPipeline() {
     Mview = window.getMatrizView();
@@ -44,37 +45,32 @@ void Visualizador3d::rotacionarCameraX(double anguloGraus) {
 
 std::vector<DesenhoObjeto> Visualizador3d::processarDisplayFileParaDesenho() {
     std::vector<DesenhoObjeto> objetosParaDesenhar;
-
-    // 1️. Obter matrizes do pipeline 3D
     recalcularPipeline();
 
-    // 2️. Matriz de viewport (3x3, usada no 2D final)
     Matriz3x3 Mviewport = this->viewport.getMatrizViewport();
 
-    // 3️. Itera sobre todos os objetos da cena
     for (const auto& objeto_ptr : this->displayFile->objetos) {
         DesenhoObjeto desenho;
         desenho.nome = objeto_ptr->getNome();
 
-        // 4️. Obter pontos do objeto em coordenadas de mundo
         const vector<array<double, 4>>& pontosMundo = objeto_ptr->getPontos();
 
-        // 5️. Transformar todos os pontos para o espaço de NDC ([-1,1]³)
+        // transformar pontos para NDC
         vector<array<double, 4>> pontosNDC;
-        
 
         if(projecaoAtual == ORTOGONAL){
             for (const auto& p : pontosMundo) {
-                array<double, 4> p_ndc = Mvp * p; // Matriz4x4 × vetor4
+                array<double, 4> p_ndc = Mvp * p;
                 pontosNDC.push_back(p_ndc);
             }
         }
         else{
             for (const auto& p : pontosMundo) {
-                array<double, 4> p_ndc = Mvp * p; // Matriz4x4 × vetor4
+                array<double, 4> p_ndc = Mvp * p;
 
                 if (p_ndc[3] <= 0.0001) {
-                    // Vértice atrás ou muito próximo do plano near - pula
+                    // Vértice inválido - adiciona um marcador
+                    pontosNDC.push_back({0, 0, 0, -1}); // w negativo = inválido
                     continue;
                 }
 
@@ -84,42 +80,73 @@ std::vector<DesenhoObjeto> Visualizador3d::processarDisplayFileParaDesenho() {
                 pontosNDC.push_back(p_ndc);
             }
         }
-        
-        // 6️. Projetar em 2D (descartar o eixo Z)
-        for (size_t i = 0; i < pontosNDC.size(); ++i) {
-            size_t next_i = (i + 1) % pontosNDC.size();
 
-            const auto& A = pontosNDC[i];
-            const auto& B = pontosNDC[next_i];
+        //  verifica se é ObjetoOBJ
+        ObjetoOBJ* objetoOBJ = dynamic_cast<ObjetoOBJ*>(objeto_ptr.get());
 
-            // Monta pontos homogêneos 3D → 2D (x, y, 1)
-            array<double, 4> A2D = { A[0], A[1], 0.0, 1.0 };
-            array<double, 4> B2D = { B[0], B[1], 0.0, 1.0 };
+        if (objetoOBJ != nullptr) {
+            // usar as arestas
+            const auto& arestas = objetoOBJ->getArestas();
 
-            double x1 = A2D[0];
-            double y1 = A2D[1];
-            double x2 = B2D[0];
-            double y2 = B2D[1];
+            for (const auto& aresta : arestas) {
+                int idx1 = aresta.first;
+                int idx2 = aresta.second;
 
-            // 7. Recorta a linha. Se retornar true, a linha (ou o segmento resultante) é visível.
-            if (clipparReta(x1, y1, x2, y2)) {
+                // Verificar se os índices são válidos
+                if (idx1 < 0 || idx1 >= (int)pontosNDC.size() ||
+                    idx2 < 0 || idx2 >= (int)pontosNDC.size())
+                    continue;
 
-                // Se aceita, aplica a Transformação de Viewport (M_Viewport)
-                // Os novos (x1, y1, 1.0) e (x2, y2, 1.0) estão no SCN e agora serão mapeados para a tela.
+                const auto& A = pontosNDC[idx1];
+                const auto& B = pontosNDC[idx2];
 
-                // Ponto A Viewport
-                array<double, 3> ponto_A_VP = Mviewport * (array<double, 4>{x1, y1, 0.0, 1.0});
+                // Pular se algum vértice for inválido (w < 0)
+                if (A[3] < 0 || B[3] < 0)
+                    continue;
 
-                // Ponto B Viewport
-                array<double, 3> ponto_B_VP = Mviewport * (array<double, 4>{x2, y2, 0.0, 1.0});
+                double x1 = A[0];
+                double y1 = A[1];
+                double x2 = B[0];
+                double y2 = B[1];
 
-                // 8. Converte para Coordenadas 2D de Tela (Pixel)
-                Ponto2D_Tela pA = {ponto_A_VP[0], ponto_A_VP[1]};
-                Ponto2D_Tela pB = {ponto_B_VP[0], ponto_B_VP[1]};
+                if (clipparReta(x1, y1, x2, y2)) {
+                    array<double, 3> ponto_A_VP = Mviewport * (array<double, 4>{x1, y1, 0.0, 1.0});
+                    array<double, 3> ponto_B_VP = Mviewport * (array<double, 4>{x2, y2, 0.0, 1.0});
 
-                // Adiciona os dois pontos (pA e pB) para desenhar a linha.
-                desenho.pontos.push_back(pA);
-                desenho.pontos.push_back(pB);
+                    Ponto2D_Tela pA = {ponto_A_VP[0], ponto_A_VP[1]};
+                    Ponto2D_Tela pB = {ponto_B_VP[0], ponto_B_VP[1]};
+
+                    desenho.pontos.push_back(pA);
+                    desenho.pontos.push_back(pB);
+                }
+            }
+        }
+        else {
+            // conectar vértices sequencialmente
+            for (size_t i = 0; i < pontosNDC.size(); ++i) {
+                size_t next_i = (i + 1) % pontosNDC.size();
+
+                const auto& A = pontosNDC[i];
+                const auto& B = pontosNDC[next_i];
+
+                array<double, 4> A2D = { A[0], A[1], 0.0, 1.0 };
+                array<double, 4> B2D = { B[0], B[1], 0.0, 1.0 };
+
+                double x1 = A2D[0];
+                double y1 = A2D[1];
+                double x2 = B2D[0];
+                double y2 = B2D[1];
+
+                if (clipparReta(x1, y1, x2, y2)) {
+                    array<double, 3> ponto_A_VP = Mviewport * (array<double, 4>{x1, y1, 0.0, 1.0});
+                    array<double, 3> ponto_B_VP = Mviewport * (array<double, 4>{x2, y2, 0.0, 1.0});
+
+                    Ponto2D_Tela pA = {ponto_A_VP[0], ponto_A_VP[1]};
+                    Ponto2D_Tela pB = {ponto_B_VP[0], ponto_B_VP[1]};
+
+                    desenho.pontos.push_back(pA);
+                    desenho.pontos.push_back(pB);
+                }
             }
         }
 

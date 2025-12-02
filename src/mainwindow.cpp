@@ -3,11 +3,16 @@
 
 #include <QDir>
 #include <QFile>
+#include <QFileDialog>
+#include <QMessageBox>
 #include <QTextStream>
+#include <QBoxLayout>
 #include <QDebug>
 #include <sstream>
 
 using std::make_unique;
+
+int MainWindow::objetoSelecionadoIndex = -1;
 
 void carregarOBJ(const QString& caminho, DisplayFile& display) {
     QFile file(caminho);
@@ -20,11 +25,12 @@ void carregarOBJ(const QString& caminho, DisplayFile& display) {
         return;
     }
 
-    // Lê todo o conteúdo em memória
     QByteArray conteudo = file.readAll();
     std::istringstream stream(conteudo.toStdString());
 
-    std::vector<Ponto> vertices;
+    std::vector<array<double,4>> vertices;
+    std::vector<std::pair<int,int>> arestas;
+
     std::string linha;
 
     while (std::getline(stream, linha)) {
@@ -35,71 +41,120 @@ void carregarOBJ(const QString& caminho, DisplayFile& display) {
         if (tipo == "v") {
             double x, y, z;
             iss >> x >> y >> z;
-            vertices.emplace_back(x, y, z);
+            vertices.push_back({x, y, z, 1.0});
         }
         else if (tipo == "f") {
-            std::vector<Ponto> pontosFace;
+            std::vector<int> indicesFace;
             std::string indice;
+
             while (iss >> indice) {
-                // Lida com índices no formato "f a/b/c"
-                size_t barra = indice.find('/');
-                if (barra != std::string::npos)
-                    indice = indice.substr(0, barra);
+                size_t slash = indice.find('/');
+                if (slash != std::string::npos)
+                    indice = indice.substr(0, slash);
 
-                int idx = std::stoi(indice) - 1; // .obj é 1-based
+                int idx = std::stoi(indice) - 1;
                 if (idx >= 0 && idx < (int)vertices.size())
-                    pontosFace.push_back(vertices[idx]);
+                    indicesFace.push_back(idx);
             }
 
-            if (pontosFace.size() >= 3) {
-                std::string nomeFace = "Face_" + std::to_string(display.getObjetos().size());
-                auto poligono = std::make_unique<Poligono>(nomeFace, pontosFace);
-                display.adicionarObjeto(std::move(poligono));
+            // Criar arestas conectando todos os vértices da face
+            for (int i = 0; i < (int)indicesFace.size(); i++) {
+                int j = (i+1) % indicesFace.size();
+                arestas.emplace_back(indicesFace[i], indicesFace[j]);
             }
         }
     }
 
-    qInfo() << "Arquivo OBJ carregado com sucesso!"
-            << QString::number(vertices.size()) << "vértices.";
-}
+    // Criar UM único objeto OBJ
+    auto obj = std::make_unique<ObjetoOBJ>(
+        caminho.toStdString(),
+        vertices,
+        arestas
+    );
 
-QString encontrarArquivo(const QString& relativePath) {
-    QStringList possiveisCaminhos = {
-        QCoreApplication::applicationDirPath() + "/" + relativePath,
-        QDir::currentPath() + "/" + relativePath,
-        QDir::currentPath() + "/../" + relativePath,
-        QDir::currentPath() + "/../../" + relativePath,
-        QDir::currentPath() + "/../../../" + relativePath,
-    };
-    
-    for (const QString& caminho : possiveisCaminhos) {
-        if (QFile::exists(caminho)) {
-            qInfo() << "Arquivo encontrado em:" << caminho;
-            return caminho;
-        }
-    }
-    
-    qWarning() << "Arquivo não encontrado:" << relativePath;
-    return QString(); // retorna vazio se não encontrar
-}
+    display.adicionarObjeto(std::move(obj));
 
+    qInfo() << "OBJ carregado:"
+            << vertices.size() << "vértices,"
+            << arestas.size() << "arestas.";
+}
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
-    , ui(new Ui::MainWindow)
 {
-    ui->setupUi(this);
+    setWindowTitle("Visualizador 3D");
 
-    QString charizardPath = encontrarArquivo("resources/Charizard/Charizard.obj");
-    QString umbreonPath = encontrarArquivo("resources/Umbreon/UmbreonLowPoly.obj");
-    
-    carregarOBJ(charizardPath, displayFile);
-    
-    carregarOBJ(umbreonPath, displayFile);
+    // ----- CENTRAL WIDGET -----
+    QWidget* central = new QWidget(this);
+    setCentralWidget(central);
 
+    // ----- AREA DE DESENHO -----
     areaDesenho = new WidgetDesenho(displayFile, this);
+    areaDesenho->setObjetoSelecionado(-1);
 
-    setCentralWidget(areaDesenho);
+    // ----- LISTA LATERAL -----
+    listaObjetos = new QListWidget(this);
+    connect(listaObjetos, &QListWidget::itemClicked,
+            this, &MainWindow::onObjetoSelecionado);
+
+    // ----- LAYOUT HORIZONTAL -----
+    QHBoxLayout* layoutPrincipal = new QHBoxLayout();
+    layoutPrincipal->addWidget(listaObjetos, 1);
+    layoutPrincipal->addWidget(areaDesenho, 4);
+
+    central->setLayout(layoutPrincipal);
+
+    // ----- MENUS -----
+    QMenu *menuArquivo = menuBar()->addMenu("Arquivo");
+
+    QAction *acaoCarregarOBJ = new QAction("Carregar OBJ...", this);
+    menuArquivo->addAction(acaoCarregarOBJ);
+
+    connect(acaoCarregarOBJ, &QAction::triggered,
+            this, &MainWindow::onCarregarOBJ);
+
+    QMenu *menuCamera = menuBar()->addMenu("Câmera");
+
+    QAction *acaoResetCamera = new QAction("Resetar câmera", this);
+    menuCamera->addAction(acaoResetCamera);
+
+    connect(acaoResetCamera, &QAction::triggered,
+        this, &MainWindow::onResetCamera);
+
+    resize(900, 700);
+}
+
+void MainWindow::onCarregarOBJ()
+{
+    QString caminho = QFileDialog::getOpenFileName(
+        this,
+        "Selecione o arquivo OBJ",
+        "",
+        "Arquivos OBJ (*.obj)"
+    );
+
+    if (caminho.isEmpty())
+        return;
+
+    try {
+        carregarOBJ(caminho, *(areaDesenho->visualizador.displayFile));
+        listaObjetos->addItem(caminho);
+        areaDesenho->update();
+    }
+    catch (const std::exception &e) {
+        QMessageBox::critical(this, "Erro ao carregar", e.what());
+    }
+}
+
+void MainWindow::onResetCamera()
+{
+    areaDesenho->visualizador.window.resetarCamera();
+    areaDesenho->update();
+}
+
+void MainWindow::onObjetoSelecionado(QListWidgetItem* item)
+{
+    areaDesenho->setObjetoSelecionado(listaObjetos->row(item));
 }
 
 MainWindow::~MainWindow()

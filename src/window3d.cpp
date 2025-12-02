@@ -127,8 +127,7 @@ void Window3d::rotacionarX(double anguloGraus) {
     if (novoF.y() > 0.98 || novoF.y() < -0.98) return;
 
     lookAt = eye + novoF;
-    up = right.produtoVetorial(novoF).normalizado();
-    vup = up;
+    this->vup = right.produtoVetorial(novoF).normalizado();
 }
 
 void Window3d::escalar(double fator, tipoProjecao projecaoAtual) {
@@ -154,4 +153,13 @@ void Window3d::escalar(double fator, tipoProjecao projecaoAtual) {
         if (fov < 10.0) fov = 10.0;
         if (fov > 120.0) fov = 120.0;
     }
+}
+
+void Window3d::resetarCamera()
+{
+    eye = Ponto(0, 0, 5, 1);
+    lookAt = Ponto(0, 0, 0, 1);
+    vup = Ponto(0, 1, 0, 0);
+
+    fov = 60.0;
 }

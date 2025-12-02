@@ -2,11 +2,13 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QListWidget>
 
 #include "displayfile.h"
 #include "widgetdesenho.h"
 #include "poligono.h"
 #include "aresta.h"
+#include "objetoobj.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -21,8 +23,13 @@ class MainWindow : public QMainWindow
 public:
     DisplayFile displayFile;
     WidgetDesenho* areaDesenho;
+    QListWidget* listaObjetos;
+    static int objetoSelecionadoIndex;
 
     MainWindow(QWidget *parent = nullptr);
+    void onCarregarOBJ();
+    void onResetCamera();
+    void onObjetoSelecionado(QListWidgetItem* item);
     ~MainWindow();
 
 private:

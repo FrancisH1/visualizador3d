@@ -17,9 +17,13 @@ public:
 
     DisplayFile& displayFile;
 
+    int objetoSelecionado;
+
     WidgetDesenho(DisplayFile& df, QWidget *parent = nullptr);
 
     void keyPressEvent(QKeyEvent *event) override;
+
+    void setObjetoSelecionado(int idx);
 
     // Sinaliza ao Qt que o widget precisa ser redesenhado
     void redesenhar();

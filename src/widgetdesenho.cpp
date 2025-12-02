@@ -1,4 +1,5 @@
 #include "widgetdesenho.h"
+#include "mainwindow.h"
 
 WidgetDesenho::WidgetDesenho(DisplayFile& df, QWidget *parent)
     : QWidget(parent),
@@ -56,70 +57,80 @@ void WidgetDesenho::resizeEvent(QResizeEvent *event) {
 void WidgetDesenho::paintEvent(QPaintEvent *event) {
     QPainter painter(this);
 
-    // O Visualizador retorna os pontos já transformados em coordenadas de PIXEL
-    std::vector<DesenhoObjeto> objetosParaDesenhar =
-        this->visualizador.processarDisplayFileParaDesenho();
+    // Objetos prontos para desenhar
+    auto objetosParaDesenhar = visualizador.processarDisplayFileParaDesenho();
+    const Viewport& vp = visualizador.viewport;
 
-    const Viewport& vp = this->visualizador.viewport;
-
-    // Configurações do Desenho
-    int penWidth = 2;
-    painter.setPen(QPen(Qt::red, penWidth, Qt::SolidLine));
-    painter.setBrush(Qt::NoBrush);
-
+    // Desenha borda da viewport
+    painter.setPen(QPen(Qt::red, 2));
     painter.drawRect(vp.xMin, vp.yMin, vp.xMax - vp.xMin, vp.yMax - vp.yMin);
 
     painter.setPen(Qt::black);
 
-    // --- LOOP DE DESENHO ---
+    // --- DESENHAR LINHAS ---
     for (const auto& desenho : objetosParaDesenhar) {
 
-        const auto& pontos_tela = desenho.pontos;
+        // Os pontos vêm em pares: [pA, pB, pA, pB, ...]
+        // Cada par representa uma aresta a ser desenhada
+        for (size_t i = 0; i + 1 < desenho.pontos.size(); i += 2) {
 
-        // Se o objeto tem pelo menos 2 pontos (Reta ou Polígono)
-        if (pontos_tela.size() >= 2) {
+            QPointF p1(desenho.pontos[i].x,     desenho.pontos[i].y);
+            QPointF p2(desenho.pontos[i+1].x,   desenho.pontos[i+1].y);
 
-            // Desenha as arestas
-            for (size_t i = 0; i < pontos_tela.size() - 1; i++) {
-                QPointF p1(pontos_tela[i].x, pontos_tela[i].y);
-                QPointF p2(pontos_tela[i+1].x, pontos_tela[i+1].y);
-                painter.drawLine(p1, p2);
-            }
-
-            // Se for um polígono, fechar a forma
-            if (desenho.pontos.size() > 2) { // Lógica simples para identificar o Polígono
-                QPointF pStart(pontos_tela.front().x, pontos_tela.front().y);
-                QPointF pEnd(pontos_tela.back().x, pontos_tela.back().y);
-                painter.drawLine(pEnd, pStart);
-            }
-        }
-
-        // Se for um Ponto (desenha um círculo ou pixel)
-        if (desenho.nome.find("Ponto") != std::string::npos && !pontos_tela.empty()) {
-            QPointF p(pontos_tela[0].x, pontos_tela[0].y);
-            painter.drawPoint(p);
+            painter.drawLine(p1, p2);
         }
     }
 }
 
+void WidgetDesenho::setObjetoSelecionado(int idx) {
+    this->objetoSelecionado = idx;
+}
+
 void WidgetDesenho::keyPressEvent(QKeyEvent *event) {
-    switch (event->key()) {
-        case Qt::Key_W: visualizador.moverCamera(0, 0, -0.5); break; // Frente
-        case Qt::Key_S: visualizador.moverCamera(0, 0,  0.5); break; // Trás
-        case Qt::Key_A: visualizador.moverCamera(-0.5, 0, 0); break; // Esquerda
-        case Qt::Key_D: visualizador.moverCamera(0.5, 0, 0); break;  // Direita
-        case Qt::Key_R: visualizador.moverCamera(0, 0.5, 0); break;  // Subir
-        case Qt::Key_F: visualizador.moverCamera(0, -0.5, 0); break; // Descer
+    
+    // ESC para desselecionar objeto
+    if (event->key() == Qt::Key_Escape) {
+        this->objetoSelecionado = -1;
+        update();
+        return;
+    }
 
-        case Qt::Key_Q: visualizador.rotacionarCameraY(-5); break;   // Gira esquerda
-        case Qt::Key_E: visualizador.rotacionarCameraY(5); break;    // Gira direita
-        case Qt::Key_Up: visualizador.rotacionarCameraX(-5); break;  // Gira para cima
-        case Qt::Key_Down: visualizador.rotacionarCameraX(5); break; // Gira para baixo
+    if (this->objetoSelecionado >= 0) {
+        auto& obj = *displayFile.objetos[this->objetoSelecionado];
+        switch (event->key()) {
+            case Qt::Key_W: obj.aplicarTransformacao(Matriz4x4::translacao(0, 0.5, 0)); break;
+            case Qt::Key_S: obj.aplicarTransformacao(Matriz4x4::translacao(0, -0.5, 0)); break;
+            case Qt::Key_A: obj.aplicarTransformacao(Matriz4x4::translacao(-0.5, 0, 0)); break;
+            case Qt::Key_D: obj.aplicarTransformacao(Matriz4x4::translacao(0.5, 0, 0)); break;
+            
 
-        case Qt::Key_Z: visualizador.zoomCamera(0.9); break;         // Zoom in
-        case Qt::Key_X: visualizador.zoomCamera(1.1); break;         // Zoom out
+            case Qt::Key_Q: obj.aplicarTransformacao(Matriz4x4::rotacaoY(-5)); break;
+            case Qt::Key_E: obj.aplicarTransformacao(Matriz4x4::rotacaoY(5)); break;
+            case Qt::Key_Up: obj.aplicarTransformacao(Matriz4x4::rotacaoX(-5)); break;
+            case Qt::Key_Down: obj.aplicarTransformacao(Matriz4x4::rotacaoX(5)); break;
 
-        case Qt::Key_P: visualizador.alternarProjecao(); break;
+            case Qt::Key_Z: obj.aplicarTransformacao(Matriz4x4::escala(0.9, 0.9, 0.9)); break;
+            case Qt::Key_X: obj.aplicarTransformacao(Matriz4x4::escala(1.1, 1.1, 1.1)); break; 
+        }
+    } else {
+        switch (event->key()) {
+            case Qt::Key_W: visualizador.moverCamera(0, 0, -0.5); break; // Frente
+            case Qt::Key_S: visualizador.moverCamera(0, 0,  0.5); break; // Trás
+            case Qt::Key_A: visualizador.moverCamera(-0.5, 0, 0); break; // Esquerda
+            case Qt::Key_D: visualizador.moverCamera(0.5, 0, 0); break;  // Direita
+            case Qt::Key_R: visualizador.moverCamera(0, 0.5, 0); break;  // Subir
+            case Qt::Key_F: visualizador.moverCamera(0, -0.5, 0); break; // Descer
+
+            case Qt::Key_Q: visualizador.rotacionarCameraY(-5); break;   // Gira esquerda
+            case Qt::Key_E: visualizador.rotacionarCameraY(5); break;    // Gira direita
+            case Qt::Key_Up: visualizador.rotacionarCameraX(-5); break;  // Gira para cima
+            case Qt::Key_Down: visualizador.rotacionarCameraX(5); break; // Gira para baixo
+
+            case Qt::Key_Z: visualizador.zoomCamera(0.9); break;         // Zoom in
+            case Qt::Key_X: visualizador.zoomCamera(1.1); break;         // Zoom out
+
+            case Qt::Key_P: visualizador.alternarProjecao(); break;
+        }
     }
     this->update();
 }

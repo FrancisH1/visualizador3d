@@ -38,6 +38,7 @@ public:
     void rotacionarY(double anguloGraus);
     void rotacionarX(double anguloGraus);
     void escalar(double fator, tipoProjecao projecaoAtual);
+    void resetarCamera();
 };
 
 #endif
