@@ -76,14 +76,34 @@ Matriz4x4 Window3d::getMatrizProjecaoOrtogonal() const {
 }
 
 void Window3d::transladar(double dx, double dy, double dz) {
-    // Movimento da câmera em 3D
-    eye.coordenada[0] += dx;
-    eye.coordenada[1] += dy;
-    eye.coordenada[2] += dz;
-
-    lookAt.coordenada[0] += dx;
-    lookAt.coordenada[1] += dy;
-    lookAt.coordenada[2] += dz;
+    // Calcula os vetores da câmera (sistema de coordenadas local)
+    Ponto forward = (lookAt - eye).normalizado();  // Direção para frente
+    Ponto up = vup.normalizado();                   // Direção para cima
+    Ponto right = forward.produtoVetorial(up).normalizado(); // Direção para direita
+    
+    // Recalcula UP perpendicular (evita drift)
+    up = right.produtoVetorial(forward).normalizado();
+    
+    // Move a câmera no sistema LOCAL
+    // dx = movimento DIREITA/ESQUERDA (right)
+    // dy = movimento CIMA/BAIXO (up)
+    // dz = movimento FRENTE/TRÁS (forward)
+    
+    Ponto deslocamento(
+        right.x() * dx + up.x() * dy + forward.x() * dz,
+        right.y() * dx + up.y() * dy + forward.y() * dz,
+        right.z() * dx + up.z() * dy + forward.z() * dz,
+        0.0
+    );
+    
+    // Aplica o deslocamento
+    eye.coordenada[0] += deslocamento.x();
+    eye.coordenada[1] += deslocamento.y();
+    eye.coordenada[2] += deslocamento.z();
+    
+    lookAt.coordenada[0] += deslocamento.x();
+    lookAt.coordenada[1] += deslocamento.y();
+    lookAt.coordenada[2] += deslocamento.z();
 }
 
 

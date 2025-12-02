@@ -114,17 +114,17 @@ void WidgetDesenho::keyPressEvent(QKeyEvent *event) {
         }
     } else {
         switch (event->key()) {
-            case Qt::Key_W: visualizador.moverCamera(0, 0, -0.5); break; // Frente
-            case Qt::Key_S: visualizador.moverCamera(0, 0,  0.5); break; // Trás
+            case Qt::Key_W: visualizador.moverCamera(0, 0, 0.5); break; // Frente
+            case Qt::Key_S: visualizador.moverCamera(0, 0, -0.5); break; // Trás
             case Qt::Key_A: visualizador.moverCamera(-0.5, 0, 0); break; // Esquerda
             case Qt::Key_D: visualizador.moverCamera(0.5, 0, 0); break;  // Direita
             case Qt::Key_R: visualizador.moverCamera(0, 0.5, 0); break;  // Subir
             case Qt::Key_F: visualizador.moverCamera(0, -0.5, 0); break; // Descer
 
-            case Qt::Key_Q: visualizador.rotacionarCameraY(-5); break;   // Gira esquerda
-            case Qt::Key_E: visualizador.rotacionarCameraY(5); break;    // Gira direita
-            case Qt::Key_Up: visualizador.rotacionarCameraX(-5); break;  // Gira para cima
-            case Qt::Key_Down: visualizador.rotacionarCameraX(5); break; // Gira para baixo
+            case Qt::Key_Q: visualizador.rotacionarCameraY(5); break;   // Gira esquerda
+            case Qt::Key_E: visualizador.rotacionarCameraY(-5); break;    // Gira direita
+            case Qt::Key_Up: visualizador.rotacionarCameraX(5); break;  // Gira para cima
+            case Qt::Key_Down: visualizador.rotacionarCameraX(-5); break; // Gira para baixo
 
             case Qt::Key_Z: visualizador.zoomCamera(0.9); break;         // Zoom in
             case Qt::Key_X: visualizador.zoomCamera(1.1); break;         // Zoom out
