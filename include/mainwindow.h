@@ -24,10 +24,10 @@ public:
     DisplayFile displayFile;
     WidgetDesenho* areaDesenho;
     QListWidget* listaObjetos;
-    static int objetoSelecionadoIndex;
 
     MainWindow(QWidget *parent = nullptr);
     void onCarregarOBJ();
+    void onRemoverOBJ();
     void onResetCamera();
     void onObjetoSelecionado(QListWidgetItem* item);
     ~MainWindow();

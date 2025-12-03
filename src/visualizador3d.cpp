@@ -69,7 +69,7 @@ std::vector<DesenhoObjeto> Visualizador3d::processarDisplayFileParaDesenho() {
                 array<double, 4> p_ndc = Mvp * p;
 
                 if (p_ndc[3] <= 0.0001) {
-                    // Vértice inválido - adiciona um marcador
+                    // Vértice inválido
                     pontosNDC.push_back({0, 0, 0, -1}); // w negativo = inválido
                     continue;
                 }

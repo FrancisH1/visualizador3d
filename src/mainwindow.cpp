@@ -12,8 +12,6 @@
 
 using std::make_unique;
 
-int MainWindow::objetoSelecionadoIndex = -1;
-
 void carregarOBJ(const QString& caminho, DisplayFile& display) {
     QFile file(caminho);
     if (!file.exists()) {
@@ -65,7 +63,7 @@ void carregarOBJ(const QString& caminho, DisplayFile& display) {
         }
     }
 
-    // Criar UM único objeto OBJ
+    // Criar objeto unico OBJ
     auto obj = std::make_unique<ObjetoOBJ>(
         caminho.toStdString(),
         vertices,
@@ -110,6 +108,12 @@ MainWindow::MainWindow(QWidget *parent)
     QAction *acaoCarregarOBJ = new QAction("Carregar OBJ...", this);
     menuArquivo->addAction(acaoCarregarOBJ);
 
+    QAction *acaoRemoverOBJ = new QAction("Remover objeto selecionado", this);
+    menuArquivo->addAction(acaoRemoverOBJ);
+
+    connect(acaoRemoverOBJ, &QAction::triggered,
+            this, &MainWindow::onRemoverOBJ);
+
     connect(acaoCarregarOBJ, &QAction::triggered,
             this, &MainWindow::onCarregarOBJ);
 
@@ -119,7 +123,7 @@ MainWindow::MainWindow(QWidget *parent)
     menuCamera->addAction(acaoResetCamera);
 
     connect(acaoResetCamera, &QAction::triggered,
-        this, &MainWindow::onResetCamera);
+            this, &MainWindow::onResetCamera);
 
     resize(900, 700);
 }
@@ -145,6 +149,29 @@ void MainWindow::onCarregarOBJ()
         QMessageBox::critical(this, "Erro ao carregar", e.what());
     }
 }
+
+void MainWindow::onRemoverOBJ()
+{
+    int idx = areaDesenho->getObjetoSelecionado();
+    if (idx < 0) {
+        QMessageBox::warning(this, "Remover", "Nenhum objeto selecionado.");
+        return;
+    }
+
+    // Remove do DisplayFile
+    displayFile.objetos.erase(displayFile.objetos.begin() + idx);
+
+    // Remove da lista
+    delete listaObjetos->takeItem(idx);
+
+    // Reset seleção
+    areaDesenho->setObjetoSelecionado(-1);
+    listaObjetos->clearSelection();
+
+    // Atualiza desenho
+    areaDesenho->update();
+}
+
 
 void MainWindow::onResetCamera()
 {

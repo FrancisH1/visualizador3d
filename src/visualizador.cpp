@@ -36,7 +36,7 @@ void Visualizador::rotacionarWindow(double anguloGrau) {
 std::vector<DesenhoObjeto> Visualizador::processarDisplayFileParaDesenho() {
     vector<DesenhoObjeto> objetosParaDesenhar;
 
-    const Matriz3x3& M_Final = this->matrizTransformacaoFinal;
+    //const Matriz3x3& M_Final = this->matrizTransformacaoFinal;
 
     for (const auto& objeto_ptr : this->displayFile->objetos) {
         DesenhoObjeto desenho;

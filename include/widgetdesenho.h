@@ -4,8 +4,6 @@
 #include <QWidget>
 #include <QPainter>
 #include <QKeyEvent>
-#include "window.h"
-#include "viewport.h"
 #include "displayfile.h"
 #include "visualizador3d.h"
 
@@ -24,6 +22,7 @@ public:
     void keyPressEvent(QKeyEvent *event) override;
 
     void setObjetoSelecionado(int idx);
+    int getObjetoSelecionado();
 
     // Sinaliza ao Qt que o widget precisa ser redesenhado
     void redesenhar();

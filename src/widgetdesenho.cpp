@@ -5,7 +5,7 @@ WidgetDesenho::WidgetDesenho(DisplayFile& df, QWidget *parent)
     : QWidget(parent),
     displayFile(df),
     // Cria a Window inicial
-    visualizador(&df, Window3d(Ponto(0,0,10), Ponto(0,0,0), Ponto(0,1,0), -5, 5, -5, 5, -5, 5),
+    visualizador(&df, Window3d(Ponto(0,0,10), Ponto(0,0,0), Ponto(0,1,0), -10, 10, -10, 10, -10, 10),
                  // A Viewport inicial usa o tamanho atual do widget
                  Viewport(0, 0, this->width(), this->height()))
 {
@@ -84,6 +84,10 @@ void WidgetDesenho::paintEvent(QPaintEvent *event) {
 
 void WidgetDesenho::setObjetoSelecionado(int idx) {
     this->objetoSelecionado = idx;
+}
+
+int WidgetDesenho::getObjetoSelecionado(){
+    return this->objetoSelecionado;
 }
 
 void WidgetDesenho::keyPressEvent(QKeyEvent *event) {

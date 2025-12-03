@@ -76,12 +76,12 @@ Matriz4x4 Window3d::getMatrizProjecaoOrtogonal() const {
 }
 
 void Window3d::transladar(double dx, double dy, double dz) {
-    // Calcula os vetores da câmera (sistema de coordenadas local)
+    // Calcula os vetores da câmera
     Ponto forward = (lookAt - eye).normalizado();  // Direção para frente
     Ponto up = vup.normalizado();                   // Direção para cima
     Ponto right = forward.produtoVetorial(up).normalizado(); // Direção para direita
     
-    // Recalcula UP perpendicular (evita drift)
+    // Recalcula UP perpendicular
     up = right.produtoVetorial(forward).normalizado();
     
     // Move a câmera no sistema LOCAL
@@ -177,7 +177,7 @@ void Window3d::escalar(double fator, tipoProjecao projecaoAtual) {
 
 void Window3d::resetarCamera()
 {
-    eye = Ponto(0, 0, 5, 1);
+    eye = Ponto(0, 0, 10, 1);
     lookAt = Ponto(0, 0, 0, 1);
     vup = Ponto(0, 1, 0, 0);
 
